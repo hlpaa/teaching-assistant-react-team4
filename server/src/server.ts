@@ -123,6 +123,40 @@ app.delete('/api/students/:cpf', (req: Request, res: Response) => {
   }
 });
 
+// PUT /api/students/:cpf/evaluation - Update a specific evaluation
+app.put('/api/students/:cpf/evaluation', (req: Request, res: Response) => {
+  try {
+    const { cpf } = req.params;
+    const { goal, grade } = req.body;
+    
+    if (!goal) {
+      return res.status(400).json({ error: 'Goal is required' });
+    }
+    
+    const cleanedCPF = cleanCPF(cpf);
+    const student = studentSet.findStudentByCPF(cleanedCPF);
+    
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+    
+    if (grade === '' || grade === null || grade === undefined) {
+      // Remove evaluation
+      student.removeEvaluation(goal);
+    } else {
+      // Add or update evaluation
+      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
+        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
+      }
+      student.addOrUpdateEvaluation(goal, grade);
+    }
+    
+    res.json(student.toJSON());
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
 // GET /api/students/:cpf - Get a specific student
 app.get('/api/students/:cpf', (req: Request, res: Response) => {
   try {

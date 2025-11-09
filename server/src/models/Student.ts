@@ -52,6 +52,16 @@ export class Student {
     }
   }
 
+  // Remove an evaluation
+  removeEvaluation(goal: string): boolean {
+    const existingIndex = this.evaluations.findIndex(evaluation => evaluation.getGoal() === goal);
+    if (existingIndex >= 0) {
+      this.evaluations.splice(existingIndex, 1);
+      return true;
+    }
+    return false;
+  }
+
   // Get evaluation for a specific goal
   getEvaluationForGoal(goal: string): Evaluation | undefined {
     return this.evaluations.find(evaluation => evaluation.getGoal() === goal);

@@ -93,6 +93,29 @@ export class StudentService {
       throw error;
     }
   }
+
+  // Update evaluation for a specific student and goal
+  async updateEvaluation(cpf: string, goal: string, grade: string): Promise<Student> {
+    try {
+      const response = await fetch(`${this.baseUrl}/${encodeURIComponent(cpf)}/evaluation`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ goal, grade }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to update evaluation: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating evaluation:', error);
+      throw error;
+    }
+  }
 }
 
 // Export a singleton instance

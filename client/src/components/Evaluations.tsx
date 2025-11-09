@@ -24,31 +24,10 @@ const Evaluations: React.FC<EvaluationsProps> = ({ students, onStudentUpdated, o
     setUpdatingCells(prev => new Set(prev).add(cellKey));
 
     try {
-      // Create updated evaluations array
-      const updatedEvaluations = [...(student.evaluations || [])];
-      const existingIndex = updatedEvaluations.findIndex(evaluation => evaluation.goal === goal);
+      // Use the specific evaluation update API endpoint
+      await studentService.updateEvaluation(student.cpf, goal, grade);
       
-      if (grade === '') {
-        // Remove evaluation if grade is empty
-        if (existingIndex >= 0) {
-          updatedEvaluations.splice(existingIndex, 1);
-        }
-      } else {
-        // Add or update evaluation
-        if (existingIndex >= 0) {
-          updatedEvaluations[existingIndex].grade = grade;
-        } else {
-          updatedEvaluations.push({ goal, grade });
-        }
-      }
-
-      // Update student via API
-      await studentService.updateStudent(student.cpf, {
-        name: student.name,
-        email: student.email,
-        evaluations: updatedEvaluations
-      });
-      
+      // Notify parent to reload student data
       onStudentUpdated();
     } catch (error) {
       onError((error as Error).message);
