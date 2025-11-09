@@ -279,6 +279,26 @@ tbody tr:last-child td {
   .App-header h1 {
     font-size: 2rem;
   }
+  
+  /* Responsive evaluations table */
+  .evaluations-table {
+    font-size: 0.8rem;
+  }
+  
+  .evaluations-table th:first-child {
+    width: 150px; /* Smaller width for student names on mobile */
+  }
+  
+  .evaluations-table th:not(:first-child),
+  .evaluations-table td:not(:first-child) {
+    width: calc((100% - 150px) / 6);
+    min-width: 80px; /* Smaller minimum width on mobile */
+  }
+  
+  .grade-select {
+    font-size: 0.75rem;
+    padding: 0.2rem;
+  }
 }
 
 /* Tab Navigation */
@@ -327,6 +347,7 @@ tbody tr:last-child td {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
+  table-layout: fixed; /* Force uniform column widths */
 }
 
 .evaluations-table th,
@@ -346,24 +367,33 @@ tbody tr:last-child td {
   text-align: left;
   background-color: #667eea;
   color: white;
+  width: 200px; /* Fixed width for student name column */
+}
+
+/* Goal columns - uniform width */
+.evaluations-table th:not(:first-child),
+.evaluations-table td:not(:first-child) {
+  width: calc((100% - 200px) / 6); /* Distribute remaining width equally among 6 goal columns */
+  min-width: 120px; /* Minimum width to ensure readability */
 }
 
 .grade-cell {
-  min-width: 80px;
   font-weight: 500;
   padding: 0.5rem;
+  position: relative;
 }
 
 .grade-select {
   width: 100%;
   border: none;
   background: transparent;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   padding: 0.25rem;
   cursor: pointer;
   border-radius: 4px;
   transition: all 0.2s ease-in-out;
+  text-align: center;
 }
 
 .grade-select:focus {
