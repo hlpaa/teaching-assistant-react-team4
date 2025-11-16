@@ -8,6 +8,7 @@ import { Class } from './models/Class';
 import { Scripts } from './models/Scritps';
 import * as fs from 'fs';
 import * as path from 'path';
+import {TaskSet} from './models/TaskSet'
 
 // usado para ler arquivos em POST
 const multer = require('multer');
@@ -27,6 +28,7 @@ const studentSet = new StudentSet();
 const classes = new Classes();
 const dataFile = path.resolve('./data/app-data.json');
 const scripts = new Scripts();
+const taskset = new TaskSet();
 
 // Persistence functions
 const ensureDataDirectory = (): void => {
@@ -455,6 +457,40 @@ app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
+
+// POST /api/tasks => create new task
+app.post('/api/tasks', (req: Request, res: Response) =>{
+  const task = taskset.addTask(req.body);
+  res.status(201).json(task);
+});
+
+// GET /api/tasks/:id => get task by id
+app.get('/api/tasks/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const task = taskset.findById(id);
+  if (!task) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+  res.json(task.toJSON());
+});
+
+// GET /api/tasks - Get all students
+app.get('/api/tasks', (req: Request, res: Response) => {
+  try {
+    const tasks = taskset.getAllTasks();
+    res.json(tasks.map(t => t.toJSON()));
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch students' });
+  }
+});
+// PUT /api/tasks/:id => update task
+app.put('/api/tasks/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const task = taskset.updateTask(id, req.body);
+
+  if (!task) return res.status(404).json({ error: 'Task not found' });
+  res.json(task.toJSON());
+});
 
 //POST /api/scripts - Create a new script
 app.post('/api/scripts', (req: Request, res: Response) => {
