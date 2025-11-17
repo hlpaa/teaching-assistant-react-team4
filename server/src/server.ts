@@ -9,6 +9,7 @@ import { Scripts } from './models/Scritps';
 import { AnswerSet } from './models/AnswerSet';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Answer } from './models/Answer';
 
 // usado para ler arquivos em POST
 const multer = require('multer');
@@ -469,26 +470,59 @@ app.get('/api/answers', (req: Request, res: Response) => {
     const allAnswers = answerset.getAllAnswerSet();
     res.json(allAnswers.map(a => a.toJSON()));
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch classes' });
+    res.status(500).json({ error: 'Failed to fetch answers' });
   }
 });
 
-//GET /api/scripts/:id - Get one answer by ID
+// GET /api/answers/script/:id - get all answers to a specific script
+app.get('/api/answers/script/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const scriptanswers = answerset
+      .getAllAnswerSet()
+      .filter(a => a.scriptId == id);
+    if(scriptanswers.length == 0){
+      return res.status(404).json({ error: 'no answer with specified script id found' });
+    }
+
+    res.json(scriptanswers.map(a => a.toJSON()));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch answers' });
+  }
+});
+
+app.get('/api/answers/student/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const scriptanswers = answerset
+      .getAllAnswerSet()
+      .filter(a => a.scriptId == id);
+    if(scriptanswers.length == 0){
+      return res.status(404).json({ error: 'no answer with specified student id found' });
+    }
+
+    res.json(scriptanswers.map(a => a.toJSON()));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch answers' });
+  }
+});
+
+//GET /api/answers/:id - Get one answer by ID
 app.get('/api/answers/:id', (req: Request, res: Response) => {
   const { id } = req.params;
   const answer = answerset.findById(id);
   if (!answer) {
-    return res.status(404).json({ error: 'Script not found' });
+    return res.status(404).json({ error: 'answer not found' });
   }
   res.json(answer.toJSON());
 });
 
-//PUT /api/scripts/:id - Update an answer
+//PUT /api/answers/:id - Update an answer
 app.put('/api/answers/:id', (req: Request, res: Response) => {
   const { id } = req.params;
   const answer = answerset.updateAnswer(id, req.body);
 
-  if (!answer) return res.status(404).json({ error: 'Script not found' });
+  if (!answer) return res.status(404).json({ error: 'answer not found' });
   res.json(answer.toJSON());
 });
 
