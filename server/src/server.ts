@@ -460,6 +460,9 @@ app.listen(PORT, () => {
 
 //POST /api/answers - Create a new answer
 app.post('/api/answers', (req: Request, res: Response) => {
+  const studentId = req.body['studentId'];
+  const scriptId = req.body['scriptId'];
+  
   const answer = answerset.addAnswer(req.body);
   res.status(201).json(answer);
 });
