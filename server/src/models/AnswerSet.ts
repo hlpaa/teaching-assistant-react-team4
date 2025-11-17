@@ -5,7 +5,7 @@ export class AnswerSet {
 
   addAnswer(data: any): Answer {
     const id = data.id ?? Date.now().toString();
-    const answer = new Answer(id, data.title, data.content);
+    const answer = new Answer(id, data.studentId, data.scriptId, data.content);
     this.items.push(answer);
     return answer;
   }

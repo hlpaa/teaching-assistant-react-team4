@@ -6,6 +6,7 @@ import { Evaluation } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import { Scripts } from './models/Scritps';
+import { AnswerSet } from './models/AnswerSet';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -27,6 +28,7 @@ const studentSet = new StudentSet();
 const classes = new Classes();
 const dataFile = path.resolve('./data/app-data.json');
 const scripts = new Scripts();
+const answerset = new AnswerSet();
 
 // Persistence functions
 const ensureDataDirectory = (): void => {
@@ -455,6 +457,40 @@ app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
+//POST /api/answers - Create a new answer
+app.post('/api/answers', (req: Request, res: Response) => {
+  const answer = answerset.addAnswer(req.body);
+  res.status(201).json(answer);
+});
+
+// GET /api/answers - Get all answers
+app.get('/api/answers', (req: Request, res: Response) => {
+  try {
+    const allAnswers = answerset.getAllAnswerSet();
+    res.json(allAnswers.map(a => a.toJSON()));
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch classes' });
+  }
+});
+
+//GET /api/scripts/:id - Get one answer by ID
+app.get('/api/answers/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const answer = answerset.findById(id);
+  if (!answer) {
+    return res.status(404).json({ error: 'Script not found' });
+  }
+  res.json(answer.toJSON());
+});
+
+//PUT /api/scripts/:id - Update an answer
+app.put('/api/answers/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const answer = answerset.updateAnswer(id, req.body);
+
+  if (!answer) return res.status(404).json({ error: 'Script not found' });
+  res.json(answer.toJSON());
+});
 
 //POST /api/scripts - Create a new script
 app.post('/api/scripts', (req: Request, res: Response) => {
