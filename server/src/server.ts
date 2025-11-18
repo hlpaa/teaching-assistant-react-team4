@@ -5,7 +5,7 @@ import { Student } from './models/Student';
 import { Evaluation } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
-import { Scripts } from './models/Scritps';
+import { Scripts } from './models/Scripts';
 import * as fs from 'fs';
 import * as path from 'path';
 import {TaskSet} from './models/TaskSet'
@@ -495,7 +495,7 @@ app.put('/api/tasks/:id', (req: Request, res: Response) => {
 //POST /api/scripts - Create a new script
 app.post('/api/scripts', (req: Request, res: Response) => {
   const script = scripts.addScript(req.body);
-  res.status(201).json(script);
+  res.status(201).json(script.toJSON());
 });
 
 //GET /api/scripts/:id - Get one script by ID
