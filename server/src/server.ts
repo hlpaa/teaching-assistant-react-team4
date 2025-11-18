@@ -508,6 +508,16 @@ app.get('/api/scripts/:id', (req: Request, res: Response) => {
   res.json(script.toJSON());
 });
 
+// GET /api/scripts - Get all scripts
+app.get('/api/scripts', (req: Request, res: Response) => {
+  try {
+    const allScripts = scripts.getAllScripts();
+    res.json(allScripts.map(s => s.toJSON()));
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch scripts' });
+  }
+});
+
 //PUT /api/scripts/:id - Update a script
 app.put('/api/scripts/:id', (req: Request, res: Response) => {
   const { id } = req.params;
