@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Script, CreateScriptRequest, UpdateScriptRequest } from '../../types/Script';
-import TaskListEditor from './TaskListEditor'; // NEW COMPONENT
+import { useEffect, useState } from 'react';
+import { CreateScriptRequest, Script, UpdateScriptRequest } from '../../types/Script';
 import { Task } from '../../types/Task';
+import TaskListEditor from './TaskListEditor'; // NEW COMPONENT
 
 interface ScriptEditorProps {
   script: Script | null;
@@ -12,6 +12,12 @@ interface ScriptEditorProps {
 export default function ScriptEditor({ script, onSave, onCancel }: ScriptEditorProps) {
   const [title, setTitle] = useState(script?.title || "");
   const [tasks, setTasks] = useState<Task[]>(script?.tasks || []);
+
+  // Update state when script prop changes
+  useEffect(() => {
+    setTitle(script?.title || "");
+    setTasks(script?.tasks || []);
+  }, [script]);
 
   const handleSubmit = () => {
     onSave({ title, tasks });
