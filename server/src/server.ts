@@ -494,8 +494,13 @@ app.put('/api/tasks/:id', (req: Request, res: Response) => {
 
 //POST /api/scripts - Create a new script
 app.post('/api/scripts', (req: Request, res: Response) => {
-  const script = scripts.addScript(req.body);
-  res.status(201).json(script.toJSON());
+  try {
+    const script = scripts.addScript(req.body);
+    res.status(201).json(script.toJSON());
+  }
+  catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
 });
 
 //GET /api/scripts/:id - Get one script by ID
