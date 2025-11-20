@@ -6,6 +6,10 @@ export class Scripts {
 
 addScript(data: any): Script {
   const id = data.id ?? Date.now().toString();
+  const equalScripts = this.findByName(data.title);
+  if (equalScripts) {
+    throw new Error('Script with this title already exists');
+  }
   const script = new Script(id, data.title);
 
   if (Array.isArray(data.tasks)) {
@@ -22,6 +26,10 @@ addScript(data: any): Script {
 
   findById(id: string): Script | undefined {
     return this.items.find(s => s.getId() === id);
+  }
+
+  findByName(name: string): Script | undefined {
+    return this.items.find(s => s.getTitle() === name);
   }
 
   updateScript(id: string, data: any): Script | undefined {
