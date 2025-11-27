@@ -7,6 +7,7 @@ import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import * as fs from 'fs';
 import * as path from 'path';
+import { EspecificacaoDoCalculoDaMedia } from './models/EspecificacaoDoCalculoDaMedia';
 
 // usado para ler arquivos em POST
 const multer = require('multer');
@@ -89,7 +90,8 @@ const loadDataFromFile = (): void => {
       if (data.classes && Array.isArray(data.classes)) {
         data.classes.forEach((classData: any) => {
           try {
-            const classObj = new Class(classData.topic, classData.semester, classData.year);
+            const especificacaoDoCalculoDaMedia = new EspecificacaoDoCalculoDaMedia(new Map(), new Map());
+            const classObj = new Class(classData.topic, classData.semester, classData.year, especificacaoDoCalculoDaMedia);
             classes.addClass(classObj);
 
             // Load enrollments for this class
@@ -280,7 +282,8 @@ app.post('/api/classes', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Topic, semester, and year are required' });
     }
 
-    const classObj = new Class(topic, semester, year);
+    let especificacaoDoCalculoDaMedia = new EspecificacaoDoCalculoDaMedia(new Map(), new Map());
+    const classObj = new Class(topic, semester, year, especificacaoDoCalculoDaMedia);
     const newClass = classes.addClass(classObj);
     triggerSave(); // Save to file after adding class
     res.status(201).json(newClass.toJSON());
