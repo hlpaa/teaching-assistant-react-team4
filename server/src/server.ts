@@ -1,14 +1,14 @@
-import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { StudentSet } from './models/StudentSet';
-import { Student } from './models/Student';
-import { Evaluation } from './models/Evaluation';
-import { Classes } from './models/Classes';
-import { Class } from './models/Class';
-import { Scripts } from './models/Scripts';
+import express, { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
-import {TaskSet} from './models/TaskSet'
+import { Class } from './models/Class';
+import { Classes } from './models/Classes';
+import { Evaluation } from './models/Evaluation';
+import { Scripts } from './models/Scripts';
+import { Student } from './models/Student';
+import { StudentSet } from './models/StudentSet';
+import { TaskSet } from './models/TaskSet';
 
 // usado para ler arquivos em POST
 const multer = require('multer');
@@ -456,6 +456,9 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+// Export the app for testing
+export { app };
 
 
 // POST /api/tasks => create new task
