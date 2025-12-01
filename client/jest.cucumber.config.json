@@ -1,0 +1,5 @@
+{
+  "testMatch": ["**/*.steps.test.ts"],
+  "setupFilesAfterEnv": ["<rootDir>/src/setupTests.ts"],
+  "testEnvironment": "jsdom"
+}
