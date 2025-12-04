@@ -14,7 +14,15 @@ export default function GradingPage({onError}: Props) {
   const [selected, setSelected] = useState<ScriptAnswer | null>(null);
 
   useEffect(() => {
-    setScriptAnswers(ScriptAnswerService.getAllScriptAnswers());
+    async function fetchData() {
+      try {
+        const data = await ScriptAnswerService.getAllScriptAnswers();
+        setScriptAnswers(data);
+      } catch (error) {
+        onError("Failed to load script answers.");
+      }
+    }
+    fetchData();
   }, []);
 
   if (selected) {
@@ -22,8 +30,17 @@ export default function GradingPage({onError}: Props) {
       <ScriptGrading
         scriptAnswer={selected}
         onClose={() => {
-          setScriptAnswers(ScriptAnswerService.getAllScriptAnswers());
-          setSelected(null);
+          async function setData() {
+            try {
+              const data = await ScriptAnswerService.getAllScriptAnswers();
+              setScriptAnswers(data);
+            } catch (error) {
+              onError("Failed to load script answers.");
+            }
+          }
+          setData().then(() => {
+            setSelected(null);
+          });
         }}
       />
     );

@@ -20,11 +20,12 @@ export default function ScriptGrading({ scriptAnswer, onClose }: Props) {
     });
 
     // Reload updated script answer
-    const refreshed = ScriptAnswerService
-      .getAllScriptAnswers()
-      .find(sa => sa.id === current.id);
+    const refreshed = async () =>{
+      const list = await ScriptAnswerService.getAllScriptAnswers(); // <-- Await
+      const refreshed = list.find(sa => sa.id === current.id);      // Now OK
 
-    if (refreshed) setCurrent(refreshed);
+      if (refreshed) setCurrent(refreshed);
+    }
   };
 
   return (

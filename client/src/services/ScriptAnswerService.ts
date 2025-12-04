@@ -1,163 +1,115 @@
 // ScriptAnswerService.ts
+
 import {
   ScriptAnswer,
-  TaskAnswer,
   UpdateSriptAnswerGradeRequest,
   updateTaskAnswerGradeRequest
-} from "../types/ScriptAnswer"; // adjust path
+} from "../types/ScriptAnswer";
 import { Grade } from "../types/EspecificacaoDoCalculoDaMedia";
 
-const STORAGE_KEY = "scriptAnswers";
+const API_URL = "http://localhost:3005/api";
 
 // ----------------------------------------
-// Utilities
-// ----------------------------------------
-
-function load(): ScriptAnswer[] {
-  const data = localStorage.getItem(STORAGE_KEY);
-  if (!data) return [];
-  try {
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
-
-
-function save(data: ScriptAnswer[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-
-
-// ----------------------------------------
-// Mock Data Initialization
-// ----------------------------------------
-
-function initializeMockData() {
-  const existing = load();
-  if (existing.length > 0) return; // already initialized
-
-  const starter: ScriptAnswer[] = [
-    {
-      id: "SA1",
-      scriptId: "Script-01",
-      studentId: "Student-001",
-      grade: undefined,
-      taskAnswers: [
-        {
-          id: "TA1-1",
-          taskId: "Task-1",
-          answer: "Answer to Task 1",
-          grade: undefined,
-          comments: ""
-        },
-        {
-          id: "TA1-2",
-          taskId: "Task-2",
-          answer: "Answer to Task 2",
-          grade: undefined,
-          comments: ""
-        }
-      ]
-    },
-    {
-      id: "SA2",
-      scriptId: "Script-01",
-      studentId: "Student-002",
-      grade: "MA",
-      taskAnswers: [
-        {
-          id: "TA2-1",
-          taskId: "Task-1",
-          answer: "Answer to Task 1",
-          grade: "MA",
-          comments: "Good work!"
-        },
-        {
-          id: "TA2-2",
-          taskId: "Task-2",
-          answer: "Answer to Task 2",
-          grade: "MANA",
-          comments: ""
-        }
-      ]
-    },
-    {
-      id: "SA3",
-      scriptId: "Script-02",
-      studentId: "Student-003",
-      grade: undefined,
-      taskAnswers: [
-        {
-          id: "TA3-1",
-          taskId: "Task-1",
-          answer: "Answer to Task 1",
-          grade: "MPA",
-          comments: "Needs improvement"
-        }
-      ]
-    }
-  ];
-
-  save(starter);
-  console.log("[ScriptAnswerService] Mock data initialized.");
-}
-
-// Run initialization at import time
-initializeMockData();
-
-// ----------------------------------------
-// ScriptAnswerService
+// ScriptAnswerService (REAL backend version)
 // ----------------------------------------
 
 export const ScriptAnswerService = {
-  /** Returns ALL ScriptAnswers */
-  getAllScriptAnswers(): ScriptAnswer[] {
-    return load();
+  /** Fetch ALL ScriptAnswers */
+  async getAllScriptAnswers(): Promise<ScriptAnswer[]> {
+    const res = await fetch(`${API_URL}/scriptAnswers`);
+    if (!res.ok) throw new Error("Failed to fetch scriptAnswers");
+    return res.json();
   },
 
-  /** Returns all ScriptAnswers by student ID */
-  getScriptAnswersByStudentId(studentId: string): ScriptAnswer[] {
-    return load().filter(sa => sa.studentId === studentId);
+  /** Fetch ScriptAnswers for a specific student */
+  async getScriptAnswersByStudentId(studentId: string): Promise<ScriptAnswer[]> {
+    const res = await fetch(`${API_URL}/scriptAnswers/student/${studentId}`);
+    if (!res.ok) throw new Error("Failed to fetch scriptAnswers by student");
+    return res.json();
   },
 
-  /** Add or replace a ScriptAnswer (for testing/mock writing) */
-  saveScriptAnswer(scriptAnswer: ScriptAnswer): void {
-    const list = load();
-    const index = list.findIndex(sa => sa.id === scriptAnswer.id);
+  /** Create (or save) a ScriptAnswer */
+  async saveScriptAnswer(scriptAnswer: ScriptAnswer): Promise<ScriptAnswer> {
+    const res = await fetch(`${API_URL}/scriptAnswers`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(scriptAnswer)
+    });
 
-    if (index >= 0) list[index] = scriptAnswer;
-    else list.push(scriptAnswer);
-
-    save(list);
+    if (!res.ok) throw new Error("Failed to save ScriptAnswer");
+    return res.json();
   },
 
-  /** Update only the ScriptAnswer grade */
-  updateScriptAnswerGrade(req: UpdateSriptAnswerGradeRequest): void {
-    const list = load();
-    const sa = list.find(s => s.id === req.scriptAnswerId);
-    if (!sa) return;
+  /** Update only the GRADE of a ScriptAnswer */
+  async updateScriptAnswerGrade(req: UpdateSriptAnswerGradeRequest): Promise<ScriptAnswer> {
+    const res = await fetch(`${API_URL}/scriptAnswers/${req.scriptAnswerId}/grade`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ grade: req.grade })
+    });
 
-    sa.grade = req.grade;
-    save(list);
+    if (!res.ok) throw new Error("Failed to update ScriptAnswer grade");
+    return res.json();
   },
 
-  /** Update a single TaskAnswer inside a ScriptAnswer */
-  updateTaskAnswer(req: updateTaskAnswerGradeRequest): void {
-    const list = load();
+  /** Update one TaskAnswer: grade and/or comments */
+  async updateTaskAnswer(req: updateTaskAnswerGradeRequest): Promise<any> {
+    const res = await fetch(`${API_URL}/taskAnswers/${req.TaskAnswerId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        grade: req.grade,
+        comments: req.comments
+      })
+    });
 
-    for (const sa of list) {
-      const task = sa.taskAnswers.find(t => t.id === req.TaskAnswerId);
-      if (task) {
-        if (req.grade !== undefined) task.grade = req.grade;
-        if (req.comments !== undefined) task.comments = req.comments;
-        break;
+    if (!res.ok) throw new Error("Failed to update TaskAnswer");
+    return res.json();
+  },
+
+  /** Get the grade of a task inside a ScriptAnswer */
+  async getTaskAnswerGrade(scriptAnswerId: string, taskId: string): Promise<Grade | undefined> {
+    const res = await fetch(
+      `${API_URL}/scriptAnswers/${scriptAnswerId}/tasks/${taskId}`
+    );
+    if (res.status === 404) return undefined;
+    if (!res.ok) throw new Error("Failed to fetch task grade");
+
+    const data = await res.json();
+    return data.grade;
+  },
+
+  /** Add comment to a ScriptAnswer */
+  async updateScriptAnswerComment(scriptAnswerId: string, comment: string): Promise<any> {
+    const res = await fetch(
+      `${API_URL}/scriptAnswers/${scriptAnswerId}/comments`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comment })
       }
-    }
+    );
 
-    save(list);
+    if (!res.ok) throw new Error("Failed to update comment");
+    return res.json();
+  },
+
+  /** Add comment to a TaskAnswer inside a ScriptAnswer */
+  async updateTaskAnswerComment(
+    scriptAnswerId: string,
+    taskId: string,
+    comment: string
+  ): Promise<any> {
+    const res = await fetch(
+      `${API_URL}/scriptAnswers/${scriptAnswerId}/tasks/${taskId}/comments`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comment })
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to update task comment");
+    return res.json();
   }
-
-  /* Get task by taskanswerid */
 };
