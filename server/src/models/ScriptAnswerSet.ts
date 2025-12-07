@@ -15,6 +15,16 @@ export class ScriptAnswerSet {
     return newAnswer;
   }
 
+  removeScriptAnswer(id: string) {
+    const index = this.scriptAnswers.findIndex(a => a.id === id);
+    if (index !== -1) {
+      this.scriptAnswers.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+  
+
   getAll() {
     return this.scriptAnswers;
   }
