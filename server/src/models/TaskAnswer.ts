@@ -14,6 +14,10 @@ export class TaskAnswer {
     this.answer = answer;
     this.grade = grade;
     this.comments = comments;
+
+    if(grade && grade != "MA" && grade != "MPA" && grade != "MANA") {
+      throw new Error('Invalid grade value');
+    }
   }
 
   getTaskId(): string {
