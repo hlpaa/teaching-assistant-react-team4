@@ -524,8 +524,18 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
 });
 
 
-// Export the app for testing
-export { app, studentSet, classes, scriptAnswerSet};
+// Export the app for testing and routes files
+export { app, studentSet, classes, scriptAnswerSet, taskset, scripts};
+
+
+// Setup routes (after exports)
+import { setupScriptAnswerRoutes } from './server_routes/scriptanswer';
+import { setupTaskRoutes } from './server_routes/tasks';
+import { setupScriptRoutes } from './server_routes/scripts';
+
+setupScriptAnswerRoutes(app, scriptAnswerSet, studentSet);
+setupTaskRoutes(app, taskset);
+setupScriptRoutes(app, scripts);
 
 // Only start the server if this file is run directly (not imported for testing)
 if (require.main === module) {
@@ -534,220 +544,8 @@ if (require.main === module) {
   });
 }
 
-// --------------------------------------------------------------
-// GET /api/scripts/answers  → Return all OR return by ?id=
-// --------------------------------------------------------------
-// GET /api/scripts/answers  → get ALL answers
-app.get('/api/scripts/answers', (req: Request, res: Response) => {
-  try {
-    const all = scriptAnswerSet.getAll();
-    return res.status(200).json(all);
-  } catch (err) {
-    return res.status(500).json({ error: 'Failed to fetch script answers' });
-  }
-});
-
-// --------------------------------------------------------------
-// GET /api/scripts/answers/student/:studentId → Answers for a student
-// --------------------------------------------------------------
-app.get('/api/scripts/answers/student/:studentId', (req: Request, res: Response) => {
-  const { studentId } = req.params;
-
-  const student = studentSet.findStudentByCPF(studentId);
-  if (!student) {
-    return res.status(404).json({ error: 'Student not found' });
-  }
-
-  const answers = scriptAnswerSet.findByStudentId(studentId);
-  return res.status(200).json(answers);
-});
-
-// GET /api/scripts/answers/:id  → get ONE answer by ID
-app.get('/api/scripts/answers/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const found = scriptAnswerSet.findById(id);
-  if (!found) {
-    return res.status(404).json({ error: 'ScriptAnswer not found' });
-  }
-
-  return res.status(200).json(found);
-});
 
 
-
-// --------------------------------------------------------------
-// GET /api/scripts/answers/:id/tasks/:taskId → Get grade of task
-// --------------------------------------------------------------
-app.get('/api/scripts/answers/:id/tasks/:taskId', (req: Request, res: Response) => {
-  const { id, taskId } = req.params;
-
-  const scriptAnswer = scriptAnswerSet.findById(id);
-  if (!scriptAnswer) {
-    return res.status(404).json({ error: 'ScriptAnswer not found' });
-  }
-
-  const task = scriptAnswer.taskAnswers.find(t => t.taskId === taskId);
-  if (!task) {
-    return res.status(404).json({ error: 'Task not found' });
-  }
-
-  return res.status(200).json({ grade: task.grade });
-});
-
-
-// --------------------------------------------------------------
-// POST /api/scripts/answers  → Create a script answer
-// --------------------------------------------------------------
-app.post('/api/scripts/answers', (req: Request, res: Response) => {
-  try {
-    const newAnswer = scriptAnswerSet.addScriptAnswer(req.body);
-    res.status(201).json(newAnswer);
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
-  }
-});
-
-// --------------------------------------------------------------
-// PUT /api/scripts/answers/:id/tasks/:taskId → Update grade
-// --------------------------------------------------------------
-app.put('/api/scripts/answers/:id/tasks/:taskId', (req: Request, res: Response) => {
-  const { id, taskId } = req.params;
-  const { grade } = req.body;
-
-  const scriptAnswer = scriptAnswerSet.findById(id);
-  if (!scriptAnswer) {
-    return res.status(404).json({ error: 'ScriptAnswer not found' });
-  }
-
-  const task = scriptAnswer.taskAnswers.find(t => t.taskId === taskId);
-  if (!task) {
-    return res.status(404).json({ error: 'Task not found' });
-  }
-
-  if (!['MANA', 'MPA', 'MA'].includes(grade)) {
-    return res.status(400).json({ error: 'Invalid grade' });
-  }
-
-  task.grade = grade;
-  return res.status(200).json({ taskId, grade });
-});
-
-// --------------------------------------------------------------
-// PUT /api/scripts/answers/:id/comments → Add comment to script
-// --------------------------------------------------------------
-app.put('/api/scripts/answers/:id/comments', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { comment } = req.body;
-
-  const scriptAnswer = scriptAnswerSet.findById(id);
-  if (!scriptAnswer) {
-    return res.status(404).json({ error: 'ScriptAnswer not found' });
-  }
-
-  scriptAnswer.comment = comment;
-
-  return res.status(200).json({ id, comment });
-});
-
-// --------------------------------------------------------------
-// PUT /api/scripts/answers/:id/tasks/:taskId/comments
-// --------------------------------------------------------------
-app.put('/api/scripts/answers/:id/tasks/:taskId/comments', (req: Request, res: Response) => {
-  const { id, taskId } = req.params;
-  const { comment } = req.body;
-
-  const scriptAnswer = scriptAnswerSet.findById(id);
-  if (!scriptAnswer) {
-    return res.status(404).json({ error: 'ScriptAnswer not found' });
-  }
-
-  const task = scriptAnswer.taskAnswers.find(t => t.taskId === taskId);
-  if (!task) {
-    return res.status(404).json({ error: 'Task not found' });
-  }
-
-  task.comments = comment;
-
-  return res.status(200).json({ taskId, comment });
-});
-
-// --------------------------------------------------------------
-// TASKS endpoints
-// --------------------------------------------------------------
-
-// POST /api/tasks => create new task
-app.post('/api/tasks', (req: Request, res: Response) =>{
-  const task = taskset.addTask(req.body);
-  res.status(201).json(task);
-});
-
-// GET /api/tasks/:id => get task by id
-app.get('/api/tasks/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const task = taskset.findById(id);
-  if (!task) {
-    return res.status(404).json({ error: 'Task not found' });
-  }
-  res.json(task.toJSON());
-});
-
-// GET /api/tasks - Get all students
-app.get('/api/tasks', (req: Request, res: Response) => {
-  try {
-    const tasks = taskset.getAllTasks();
-    res.json(tasks.map(t => t.toJSON()));
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch students' });
-  }
-});
-// PUT /api/tasks/:id => update task
-app.put('/api/tasks/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const task = taskset.updateTask(id, req.body);
-
-  if (!task) return res.status(404).json({ error: 'Task not found' });
-  res.json(task.toJSON());
-});
-
-// --------------------------------------------------------------
-// SCRIPTS endpoints
-// --------------------------------------------------------------
-
-//POST /api/scripts - Create a new script
-app.post('/api/scripts', (req: Request, res: Response) => {
-  const script = scripts.addScript(req.body);
-  res.status(201).json(script.toJSON());
-});
-
-//GET /api/scripts/:id - Get one script by ID
-app.get('/api/scripts/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const script = scripts.findById(id);
-  if (!script) {
-    return res.status(404).json({ error: 'Script not found' });
-  }
-  res.json(script.toJSON());
-});
-
-// GET /api/scripts - Get all scripts
-app.get('/api/scripts', (req: Request, res: Response) => {
-  try {
-    const allScripts = scripts.getAllScripts();
-    res.json(allScripts.map(s => s.toJSON()));
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch scripts' });
-  }
-});
-
-//PUT /api/scripts/:id - Update a script
-app.put('/api/scripts/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const script = scripts.updateScript(id, req.body);
-
-  if (!script) return res.status(404).json({ error: 'Script not found' });
-  res.json(script.toJSON());
-});
 
 
 
