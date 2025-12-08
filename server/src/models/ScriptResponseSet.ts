@@ -1,6 +1,7 @@
 import { ScriptResponse } from './ScriptResponse';
 import { Script } from './Script';
 import { Enrollment } from './Enrollment';
+import { v4 as uuid } from 'uuid';
 export class ScriptResponseSet {
   private items: ScriptResponse[] = [];
 
@@ -13,7 +14,7 @@ export class ScriptResponseSet {
     status?: 'in_progress' | 'finished';
     answers?: any[];
   }): ScriptResponse {
-    const id = `${data.enrollment.getStudent().getCPF()}-${data.script.getId()}`;
+    const id = data.id ?? uuid();
     const scriptresponse = new ScriptResponse(id, data.script, data.enrollment, data.started_at);
     if (data.finished_at !== undefined) scriptresponse.update({ finished_at: data.finished_at });
     if (data.status !== undefined) scriptresponse.update({ status: data.status });

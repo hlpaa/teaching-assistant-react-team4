@@ -7,6 +7,7 @@ import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import { Report } from './models/Report';
 import { Scripts } from './models/Scripts';
+import { ScriptResponseSet } from './models/ScriptResponseSet';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
@@ -31,6 +32,7 @@ const classes = new Classes();
 const dataFile = path.resolve('./data/app-data.json');
 const scripts = new Scripts();
 const taskset = new TaskSet();
+const scriptResponseSet = new ScriptResponseSet();
 
 // Persistence functions
 const ensureDataDirectory = (): void => {
@@ -599,4 +601,32 @@ app.put('/api/scripts/:id', (req: Request, res: Response) => {
 
   if (!script) return res.status(404).json({ error: 'Script not found' });
   res.json(script.toJSON());
+});
+
+app.post('/api/scriptResponses', (req, res) => {
+  const { scriptId, studentCPF, classId } = req.body;
+  const script = scripts.findById(scriptId);
+  const classObj = classes.findClassById(classId);
+
+  if (!script || !classObj) {
+    return res.status(404).json({ error: 'Script or Class not found' });
+  }
+
+  const enrollment = classObj.findEnrollmentByStudentCPF(studentCPF);
+  
+  if (!enrollment) { 
+    return res.status(404).json({ error: 'Student not enrolled in this class' });
+  }
+  
+  const response = scriptResponseSet.createOrGetActiveScriptResponse(enrollment, script);
+  res.json(response.toJSON());
+});
+
+// GET /api/script-responses/:id
+app.get('/api/scriptResponses/:id', (req, res) => {
+  const response = scriptResponseSet.findById(req.params.id);
+  if (!response) {
+    return res.status(404).json({ error: 'ScriptResponse not found' });
+  }
+  res.json(response.toJSON());
 });
