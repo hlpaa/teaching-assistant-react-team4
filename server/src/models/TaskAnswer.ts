@@ -3,12 +3,12 @@ import { Grade } from "./Evaluation";
 
 export class TaskAnswer {
   public id: string;
-  public task: Task;
+  public task: string;
   public answer?: string;
   private grade?: Grade;
   public comments?: string;
 
-  constructor(id: string, task: Task, answer?: string, grade?: Grade, comments?: string) {
+  constructor(id: string, task: string, answer?: string, grade?: Grade, comments?: string) {
     this.id = id;
     this.task = task;
     this.answer = answer;
@@ -21,13 +21,13 @@ export class TaskAnswer {
   }
 
   getTaskId(): string {
-    return this.task.getId();
+    return this.task;
   }
 
   toJSON() {
     return {
       id: this.id,
-      task: this.task.toJSON(),
+      task: this.task,
       answer: this.answer,
       grade: this.grade ? this.grade : undefined,
       comments: this.comments
@@ -42,7 +42,7 @@ export class TaskAnswer {
   }
 
   update(data: Partial<{task: any; answer : any; grade: any; comments: any }>) {
-    if (data.task) this.task = Task.fromJSON(data.task);
+    if (data.task) this.task = data.task;
     if (data.answer) this.answer = data.answer;
     if (data.grade !== undefined) this.updateGrade(data.grade);
     if (data.comments !== undefined) this.comments = data.comments;
