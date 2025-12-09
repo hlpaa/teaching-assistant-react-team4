@@ -9,6 +9,9 @@ addScript(data: any): Script {
   if (data.title === undefined || data.title.trim() === '') {
     throw new Error('Script title is required');
   }
+  if (!Array.isArray(data.tasks) || data.tasks.length === 0) {
+    throw new Error('Script must have at least one task');
+  }
   if (data.description === undefined || data.description.trim() === '') {
     throw new Error('Script description is required');
   }

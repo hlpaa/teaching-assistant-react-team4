@@ -30,6 +30,10 @@ export default function ScriptEditor({ script, onSave, onCancel }: ScriptEditorP
       alert("Description cannot be empty");
       return;
     }
+    if (tasks.length === 0) {
+      alert("Script must have at least one task");
+      return;
+    }
     onSave({ title, description, tasks });
   };
 
@@ -58,7 +62,7 @@ export default function ScriptEditor({ script, onSave, onCancel }: ScriptEditorP
 
       <TaskListEditor tasks={tasks} setTasks={setTasks} />
 
-      <button onClick={handleSubmit}>Save</button>
+      <button onClick={handleSubmit} disabled={tasks.length === 0}>Save</button>
       {onCancel && (
         <button onClick={onCancel} style={{ marginLeft: "1rem" }}>
           Cancel
