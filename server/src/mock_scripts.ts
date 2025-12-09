@@ -1,9 +1,8 @@
-import { Express } from 'express';
-import { TaskSet } from './models/TaskSet';
-import { Scripts } from './models/Scripts';
 import { ScriptAnswerSet } from './models/ScriptAnswerSet';
+import { Scripts } from './models/Scripts';
 import { Task } from './models/Task';
 import { TaskAnswer } from './models/TaskAnswer';
+import { TaskSet } from './models/TaskSet';
 
 export function loadMockScriptsAndAnswers(
   taskset: TaskSet,
@@ -31,7 +30,7 @@ export function loadMockScriptsAndAnswers(
 
     // Create mock scripts if none exist
     if (scripts.getAllScripts().length === 0) {
-      const script1 = scripts.addScript(new (require('./models/Script').Script)('script-001', 'Midterm Exam - Math 101'));
+      const script1 = scripts.addScript(new (require('./models/Script').Script)('script-001', 'Midterm Exam - Math 101', 'Comprehensive midterm assessment'));
       const foundTask1 = taskset.findById('task-001');
       const foundTask2 = taskset.findById('task-002');
       const foundTask3 = taskset.findById('task-003');
@@ -40,12 +39,12 @@ export function loadMockScriptsAndAnswers(
       if (foundTask2) script1.addTask(foundTask2);
       if (foundTask3) script1.addTask(foundTask3);
 
-      const script2 = scripts.addScript(new (require('./models/Script').Script)('script-002', 'Final Exam - Math 101'));
+      const script2 = scripts.addScript(new (require('./models/Script').Script)('script-002', 'Final Exam - Math 101', 'Final comprehensive examination'));
       if (foundTask1) script2.addTask(foundTask1);
       if (foundTask2) script2.addTask(foundTask2);
       if (foundTask3) script2.addTask(foundTask3);
 
-      const script3 = scripts.addScript(new (require('./models/Script').Script)('script-003', 'Quiz - Programming 201'));
+      const script3 = scripts.addScript(new (require('./models/Script').Script)('script-003', 'Quiz - Programming 201', 'Quick assessment quiz'));
       if (foundTask2) script3.addTask(foundTask2);
       if (foundTask3) script3.addTask(foundTask3);
 
