@@ -43,7 +43,7 @@ export default function TaskListEditor({ tasks, setTasks }: Props) {
           placeholder="New task..."
           style={{ marginRight: "1rem" }}
         />
-        <button onClick={addTask}>
+        <button onClick={addTask} style={{ backgroundColor: "#2196F3", color: "white" }}>
           Add
         </button>
       </div>
@@ -59,14 +59,14 @@ export default function TaskListEditor({ tasks, setTasks }: Props) {
                   onChange={(e) => setEditingText(e.target.value)}
                   style={{ flex: 1 }}
                 />
-                <button onClick={saveEdit}>Save</button>
-                <button onClick={() => setEditingTaskId(null)}>Cancel</button>
+                <button onClick={saveEdit} style={{ backgroundColor: "#4CAF50", color: "white" }}>Save</button>
+                <button onClick={() => setEditingTaskId(null)} style={{ backgroundColor: "#9E9E9E", color: "white" }}>Cancel</button>
               </div>
             ) : (
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <span style={{ flex: 1 }}>{task.statement}</span>
-                <button onClick={() => startEdit(task)} style={{ backgroundColor: "#4CAF50", color: "white", border: "none", padding: "0.5rem 1rem", borderRadius: "4px", cursor: "pointer" }}>Edit</button>
-                <button onClick={() => deleteTask(task.id)} style={{ backgroundColor: "#f44336", color: "white", border: "none", padding: "0.5rem 1rem", borderRadius: "4px", cursor: "pointer" }}>Delete</button>
+                <button onClick={() => startEdit(task)} style={{ backgroundColor: "#4CAF50", color: "white" }}>Edit</button>
+                <button onClick={() => deleteTask(task.id)} style={{ backgroundColor: "#f44336", color: "white" }}>Delete</button>
               </div>
             )}
           </li>

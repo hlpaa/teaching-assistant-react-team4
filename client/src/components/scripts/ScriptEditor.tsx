@@ -62,9 +62,9 @@ export default function ScriptEditor({ script, onSave, onCancel }: ScriptEditorP
 
       <TaskListEditor tasks={tasks} setTasks={setTasks} />
 
-      <button onClick={handleSubmit} disabled={tasks.length === 0}>Save</button>
+      <button onClick={handleSubmit} disabled={tasks.length === 0} style={{ backgroundColor: "#4CAF50", color: "white" }}>Save</button>
       {onCancel && (
-        <button onClick={onCancel} style={{ marginLeft: "1rem" }}>
+        <button onClick={onCancel} style={{ marginLeft: "1rem", backgroundColor: "#9E9E9E", color: "white" }}>
           Cancel
         </button>
       )}
