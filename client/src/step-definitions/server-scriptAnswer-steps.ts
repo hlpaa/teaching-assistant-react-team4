@@ -10,6 +10,7 @@ const serverUrl = 'http://localhost:3005';
 let lastResponse: Response;
 let createdScriptAnswerIds: string[] = [];
 let createdStudentCPF: string | null = null;
+let lastCreatedScriptAnswerId: string | null = null;
 
 After({ tags: '@server' }, async function () {
   // Clean up created script answers if needed
@@ -39,7 +40,10 @@ After({ tags: '@server' }, async function () {
     }
     createdStudentCPF = null;
   }
+
+  lastCreatedScriptAnswerId = null;
 });
+
 
 // ============================================================
 // Retrieval of all script answers
@@ -178,6 +182,123 @@ Given('there is no student with CPF {string}', async function (cpf: string) {
   }
 });
 
+// ============================================================
+// Retrieval of grade for specific task
+// ============================================================
+
+Given('there is a script answer with ID {string}', async function (answerId: string) {
+  const cleanId = answerId.replace(/"/g, '');
+
+  try {
+    const response = await fetch(`${serverUrl}/api/scriptanswers/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: cleanId,
+        scriptId: `script-${cleanId}`,
+        studentId: '11111111111',
+        answers: []
+      })
+    });
+
+    if (response.status === 201) {
+      createdScriptAnswerIds.push(cleanId);
+      lastCreatedScriptAnswerId = cleanId;
+      console.log(`Server setup: Created script answer with ID: ${cleanId}`);
+    } else {
+      console.error(`Failed to create script answer ${cleanId}: Status ${response.status}`);
+    }
+  } catch (error) {
+    console.error(`Failed to create script answer ${cleanId}:`, error);
+  }
+});
+
+Given('this answer contains a task with ID {string} and grade {string}', async function (taskId: string, grade: string) {
+  if (!lastCreatedScriptAnswerId) {
+    throw new Error('No script answer has been created yet. Use "Given there is a script answer with ID" first.');
+  }
+
+  const cleanTaskId = taskId.replace(/"/g, '');
+  const cleanGrade = grade.replace(/"/g, '');
+
+  try {
+    // Fetch the existing script answer
+    const getResponse = await fetch(`${serverUrl}/api/scriptanswers/${lastCreatedScriptAnswerId}`);
+    
+    if (getResponse.status !== 200) {
+      throw new Error(`Failed to fetch script answer ${lastCreatedScriptAnswerId}`);
+    }
+
+    const scriptAnswer = await getResponse.json();
+    console.log(`Fetched script answer for update:`, scriptAnswer);
+
+    // Add task answer to the script answer
+    scriptAnswer.answers.push({
+      id: `ta-${cleanTaskId}`,
+      task: cleanTaskId,
+      answer: 'Test answer',
+      grade: cleanGrade,
+      comments: ''
+    });
+
+    // Update the script answer with the new task
+    const postResponse = await fetch(`${serverUrl}/api/scriptanswers/${lastCreatedScriptAnswerId}/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(scriptAnswer)
+    });
+
+    if (postResponse.status === 200) {
+      console.log(`Server setup: Added task ${cleanTaskId} with grade ${cleanGrade} to answer ${lastCreatedScriptAnswerId}`);
+    } else {
+      console.error(`Failed to update script answer: Status ${postResponse.status}`);
+    }
+  } catch (error) {
+    console.error(`Failed to add task to script answer:`, error);
+  }
+});
+
+Given('this answer does not contain a task with ID {string}', async function (taskId: string) {
+  if (!lastCreatedScriptAnswerId) {
+    throw new Error('No script answer has been created yet. Use "Given there is a script answer with ID" first.');
+  }
+
+  const cleanTaskId = taskId.replace(/"/g, '');
+
+  try {
+    // Fetch the existing script answer
+    const getResponse = await fetch(`${serverUrl}/api/scriptanswers/${lastCreatedScriptAnswerId}`);
+    
+    if (getResponse.status !== 200) {
+      throw new Error(`Failed to fetch script answer ${lastCreatedScriptAnswerId}`);
+    }
+
+    const scriptAnswer = await getResponse.json();
+
+    // Ensure the task is NOT in the answer
+    scriptAnswer.answers = scriptAnswer.answers.filter((ta: any) => ta.task !== cleanTaskId);
+
+    // Update the script answer
+    const postResponse = await fetch(`${serverUrl}/api/scriptanswers/${lastCreatedScriptAnswerId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(scriptAnswer)
+    });
+
+    if (postResponse.status === 200) {
+      console.log(`Server setup: Ensured task ${cleanTaskId} is not in answer ${lastCreatedScriptAnswerId}`);
+    } else {
+      console.error(`Failed to update script answer: Status ${postResponse.status}`);
+    }
+  } catch (error) {
+    console.error(`Failed to update script answer:`, error);
+  }
+});
+
+// ============================================================
+// HTTP Requests
+// ============================================================
+
 When('I send a GET request to {string}', async function (endpoint: string) {
   try {
     lastResponse = await fetch(`${serverUrl}${endpoint}`);
@@ -187,11 +308,16 @@ When('I send a GET request to {string}', async function (endpoint: string) {
   }
 });
 
+// ============================================================
+// Assertions
+// ============================================================
+
 Then(/^the server should return (\d+) (.+)$/, async function (statusCode: string, message: string) {
   const code = parseInt(statusCode);
   expect(lastResponse.status).toBe(code);
   console.log(`Server test: Confirmed response status is ${code} ${message}`);
 });
+
 Then('the server should return a list containing answers {string}, {string}, {string}', async function (string1: string, string2: string, string3: string) {
   const expectedIds = [string1, string2, string3].map(id => id.replace(/"/g, ''));
   
@@ -208,9 +334,6 @@ Then('the server should return a list containing answers {string}, {string}, {st
   console.log(`Server test: Verified response contains answers: ${expectedIds.join(', ')}`);
 });
 
-
-
-
 Then('the server should return an empty list', async function () {
   const responseBody = await lastResponse.json();
   expect(Array.isArray(responseBody)).toBe(true);
@@ -219,10 +342,31 @@ Then('the server should return an empty list', async function () {
   console.log('Server test: Confirmed response is an empty list');
 });
 
-Then('the server should return an error message {string}', async function (string) {
+Then('the server should return an error message {string}', async function (errorMessage: string) {
   const responseBody = await lastResponse.json();
   expect(responseBody.error).toBeDefined();
-  expect(responseBody.error.toLowerCase()).toContain(string);
+  const cleanMessage = errorMessage.replace(/"/g, '');
+  expect(responseBody.error.toLowerCase()).toContain(cleanMessage.toLowerCase());
+  
+  console.log(`Server test: Confirmed error message contains: ${cleanMessage}`);
+});
+
+Then('the server should return grade {string}', async function (grade: string) {
+  const responseBody = await lastResponse.json();
+  const cleanGrade = grade.replace(/"/g, '');
+  
+  expect(responseBody.grade).toBeDefined();
+  expect(responseBody.grade).toBe(cleanGrade);
+  
+  console.log(`Server test: Confirmed grade is: ${cleanGrade}`);
+});
+
+Then('the server should return an error message stating the task was not found', async function () {
+  const responseBody = await lastResponse.json();
+  expect(responseBody.error).toBeDefined();
+  expect(responseBody.error.toLowerCase()).toContain('task');
+  expect(responseBody.error.toLowerCase()).toContain('not found');
   
   console.log(`Server test: Confirmed error message: ${responseBody.error}`);
 });
+
