@@ -13,6 +13,7 @@ const serverUrl = 'http://localhost:3005';
 // ============================================================
 let lastResponse: Response;
 let createdScriptAnswerIds: string[] = [];
+let createdScriptsIds: string[] = [];
 let createdStudentCPF: string | null = null;
 let lastCreatedScriptAnswerId: string | null = null;
 let mostRecentTaskId: string | null = null;
@@ -20,7 +21,27 @@ let mostRecentTaskId: string | null = null;
 // ============================================================
 // Helper functions
 // ============================================================
+
+async function createScript(title, id: string) {
+  const response = await fetch(`${serverUrl}/api/scripts/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: id, title: title, tasks: [] })
+  });
+
+  lastResponse = response;
+  expect(response.status).toBe(201);
+  createdScriptsIds.push(id);
+
+  return response;
+}
+
+
+
+
 async function createScriptAnswer(id: string, studentId: string) {
+  await createScript(`Script for ${id}`, `script-${id}`);
+
   const response = await fetch(`${serverUrl}/api/scriptanswers/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -84,6 +105,12 @@ After({ tags: '@server' }, async function () {
     await fetch(`${serverUrl}/api/students/${createdStudentCPF}`, { method: 'DELETE' });
     createdStudentCPF = null;
   }
+
+  for (const id of createdScriptsIds) {
+    await fetch(`${serverUrl}/api/scripts/${id}`, { method: 'DELETE' });
+  }
+  createdScriptsIds = [];
+
 
   lastCreatedScriptAnswerId = null;
 });
