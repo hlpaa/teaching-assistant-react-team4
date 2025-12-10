@@ -100,18 +100,26 @@ export function loadMockScriptsAndAnswers(
         tasks: [foundTask1, foundTask2, foundTask3].filter(Boolean)
       });
 
-      const script2 = scripts.addScript(new (require('./models/Script').Script)('script-002', 'Final Exam - Math 101'));
-      if (foundTask1) script2.addTask(foundTask1);
-      if (foundTask2) script2.addTask(foundTask2);
-      if (foundTask3) script2.addTask(foundTask3);
+      const script2 = scripts.addScript({
+        id: 'script-002',
+        title: 'Final Exam - Math 101',
+        description: 'Final comprehensive exam',
+        tasks: [foundTask1, foundTask2, foundTask3].filter(Boolean)
+      });
 
-      const script3 = scripts.addScript(new (require('./models/Script').Script)('script-003', 'Quiz - Programming 201'));
-      if (foundTask2) script3.addTask(foundTask2);
-      if (foundTask3) script3.addTask(foundTask3);
+      const script3 = scripts.addScript({
+        id: 'script-003',
+        title: 'Quiz - Programming 201',
+        description: 'Programming fundamentals quiz',
+        tasks: [foundTask2, foundTask3].filter(Boolean)
+      });
 
-      const script4 = scripts.addScript(new (require('./models/Script').Script)('script-004', 'Quiz - Programming 202'));
-      if (foundTask2) script4.addTask(foundTask2);
-      if (foundTask3) script4.addTask(foundTask3);
+      const script4 = scripts.addScript({
+        id: 'script-004',
+        title: 'Quiz - Programming 202',
+        description: 'Advanced programming quiz',
+        tasks: [foundTask2, foundTask3].filter(Boolean)
+      });
 
       console.log('Mock scripts created:', [script1.getId(), script2.getId(), script3.getId(), script4.getId()]);
     }
