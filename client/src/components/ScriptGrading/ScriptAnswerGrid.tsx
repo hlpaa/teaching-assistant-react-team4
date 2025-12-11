@@ -57,6 +57,7 @@ export default function ScriptAnswerGrid({ scriptAnswers, onSelect }: Props) {
         >
           <strong>Script: {loading ? "Loading..." : scriptTitles[sa.scriptId] || sa.scriptId}</strong><br />
           Student: {sa.student}<br />
+          Class: {sa.classId}<br />
           Grade: {sa.grade ?? "—"}
         </div>
       ))}
